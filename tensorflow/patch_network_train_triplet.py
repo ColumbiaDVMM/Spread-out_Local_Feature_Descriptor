@@ -41,7 +41,7 @@ parser.add_argument("--margin_1", nargs='?', type=float, default = 0.5,
                     help="Margin for positive pair")
 
 parser.add_argument("--margin_2", nargs='?', type=float, default = 0.7,
-                    help="Margin for hard negative")
+                    help="Margin for hard negative (discarded)")
 
 parser.add_argument("--alpha", nargs='?', type=float, default = 1.0,
                     help="Trade-off parameter between GOR and other loss")
