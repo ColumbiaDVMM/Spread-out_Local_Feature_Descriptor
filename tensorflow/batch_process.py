@@ -1,11 +1,4 @@
-
-# Copyright (c) 2015-present, Facebook, Inc.
-# All rights reserved.
-#
-# This source code is licensed under the CC-by-NC license found in the
-# LICENSE file in the root directory of this source tree.
-
-#! /usr/bin/env python2
+#! /usr/bin/env python
 
 import numpy as np
 import scipy.io as sio
@@ -16,7 +9,12 @@ import pandas as pd
 import subprocess
 import shlex
 
-gpu_set = ['0','1']
+# If you only have one GPU. The number is the index of the valid GPU
+gpu_set = ['0']
+
+# If you have multiple GPUs in one machine. The numbers are the indexs of the valid GPUs
+#gpu_set = ['0','1']
+
 parameter_set = ['0.0','1.0']
 number_gpu = len(gpu_set)
 

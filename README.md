@@ -1,6 +1,6 @@
 # Spread-out Local Feature Descriptor
 
-This code is the training and evaluation code for our ICCV 2017 paper.
+This code is the training and evaluation code for our ICCV 2017 paper ([arxiv](https://arxiv.org/abs/1708.06320)).
 
 @inproceedings{zhang2017learningb,
   title={Learning Spread-out Local Feature Descriptors},
@@ -9,56 +9,53 @@ This code is the training and evaluation code for our ICCV 2017 paper.
   year={2017}
 }
 
-The code is tested on Ubuntu 14.04
+
+
+The code is tested on Ubuntu 16.04
 
 ### Requirement
 Python package:
 
-tensorflow>1.0.0, tqdm, cv2, exifread, skimage, glob
+tensorflow>1.0.0, tqdm, cv2, skimage, glob
 
 ### Usage
 
 #### Get the data
 
-Download data from 
-https://www.dropbox.com/s/l7a8zvni6ia5f9g/datasets.tar.gz?dl=0
+Download UBC patch dataset [1] from http://www.iis.ee.ic.ac.uk/~vbalnt/phototourism-patches/. We thank Vassileios Balntas for sharing the data with us. 
 
-and put the extract the data to ./data/
+Extract the image data to somewhere. In the code the default location is /home/xuzhang/project/Medifor/code/Invariant-Descriptor/data/photoTour/. See batch_process.py for details.
 
 #### Run the code
 
-Change Matlab link in all the files in `./script/`
+`cd ./tensorflow`
 
-`cd ./script`
+`python batch_process.py`
 
-Generate transformed patch and train the model
+batch_process.py is the code for running the whole pipeline. Pls see the file for detailed information. For the detail of the parameter. 
 
-`./batch\_run_train.sh`
+`python patch_network_train_triplet.py`
 
-Extract local feature point
+All the result will be stored in the folder called `tensorflow_log`. Use Tensorbroad to see the result. 
 
-`./batch\_run_test.sh`
 
-Evaluate the performance
-
-`./batch\_run_eval.sh`
 
 ### Acknowledgement 
 
 We would like to thank
 
-VLfeat [1], http://www.vlfeat.org/ 
+TFeat [2] 
 
-Tilde [2], https://github.com/kmyid/TILDE
-
-Karel Lenc etal [3], https://github.com/lenck/ddet
-
-for offering the implementations of their methods. 
+for offering the baseline implementation. 
 
 and
 
-UBC dataset [3]
+UBC dataset [1]
 
 for providing the image data.
 
-[1] A. Vedaldi and B. Fulkerson, VLFeat: An Open and Portable Library of Computer Vision Algorithms
+[1] M. Brown, G. Hua, and S. Winder. Discriminative Learning of Local Image Descriptors. TPAMI, 2011
+
+[2] V. Balntas, E. Riba, D. Ponsa, and K. Mikolajczyk. Learning local feature descriptors with triplets and shallow convolutional neural networks. BMVC, 2016
+
+

@@ -212,6 +212,7 @@ class PatchCNN_triplet:
             #invertable loss for standard patches
             with tf.name_scope('rand_neg'):
                 rand_neg = tf.reduce_mean(tf.maximum(secMoment_n1,secMoment_n2))
+                #rand_neg = tf.reduce_mean(secMoment_n1)
             #covariance loss for transformed patches
             with tf.name_scope('pos'):
                 pos = tf.maximum(tf.subtract(positive_margin,tf.subtract(eucd_n1,eucd_p)), 0)
@@ -235,7 +236,7 @@ class PatchCNN_triplet:
         tf.summary.scalar('positive_loss', tf.reduce_mean(pos))
         tf.summary.scalar('total_loss', loss)
 
-        return loss, eucd_p, cos_n1
+        return loss, eucd_p, secMoment_n1
 
 
     def N_pair_loss(self):
