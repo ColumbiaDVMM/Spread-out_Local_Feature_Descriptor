@@ -38,6 +38,7 @@ batch_process.py is the code for running the whole pipeline. Pls see the file fo
 
 All the result will be stored in the folder called `tensorflow_log`. Use Tensorbroad to see the result. 
 
+`tensorboard --logdir=../tensorflow_log`
 
 
 ### Acknowledgement 
