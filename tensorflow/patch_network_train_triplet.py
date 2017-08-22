@@ -280,7 +280,7 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
         test_matches = []
         n = gc.collect()
         
-        test = patch_reader_new.SiameseDataSet('/home/xuzhang/project/Medifor/code/Invariant-Descriptor/data/photoTour/')
+        test = patch_reader_new.SiameseDataSet(args.data_dir)
         test.load_by_name(args.test_2, patch_size = patch_size)
         test.normalize_data(mean, std)
         # get patches
