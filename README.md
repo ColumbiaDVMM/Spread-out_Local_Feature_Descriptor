@@ -2,16 +2,16 @@
 
 This code is the training and evaluation code for our ICCV 2017 paper ([arxiv](https://arxiv.org/abs/1708.06320)).
 
-@inproceedings{zhang2017learningb,
-  title={Learning Spread-out Local Feature Descriptors},
-  author={Zhang, Xu and Yu, Felix X. and Kumar, Sanjiv and Chang, Shih-Fu},
-  booktitle={ICCV},
-  year={2017}
+@inproceedings{zhang2017learningb,<br />
+  title={Learning Spread-out Local Feature Descriptors},<br />
+  author={Zhang, Xu and Yu, Felix X. and Kumar, Sanjiv and Chang, Shih-Fu},<br />
+  booktitle={ICCV},<br />
+  year={2017}<br />
 }
 
 
 
-The code is tested on Ubuntu 16.04
+The code is tested on Ubuntu 16.04 with Nvidia GTX 1080 Ti.
 
 ### Requirement
 Python package:
