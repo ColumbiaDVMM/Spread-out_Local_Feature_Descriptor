@@ -83,7 +83,7 @@ start_learning_rate = args.learning_rate
 num_epoch = args.num_epoch
 display_step = 100
 batch_size =args.batch_size
-num_epoch = int(args.num_epoch*128/batch_size)
+#num_epoch = int(args.num_epoch*128/batch_size)
 
 os.environ["CUDA_VISIBLE_DEVICES"]=args.gpu_ind
 
@@ -156,7 +156,7 @@ print('Alpha: {}'.format(args.alpha))
 cnn_model = patch_cnn_triplet.PatchCNN_triplet(CNNConfig)
 
 global_step = tf.Variable(0, trainable=False)
-decay_step  = 100000
+decay_step  = 10000
 learning_rate = tf.train.exponential_decay(start_learning_rate, global_step,
                                            decay_step, 0.96, staircase=True)
 
@@ -194,7 +194,8 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
             
             sess.run(optimizer, feed_dict={cnn_model.patch: patches_train[index_1],\
                     cnn_model.patch_p: patches_train[index_2], \
-                    cnn_model.patch_n: patches_train[index_3]})
+                    cnn_model.patch_n: patches_train[index_3], \
+                    cnn_model.phase:True})
             
             if step % display_step == 0:
                 step = step+1
@@ -208,7 +209,8 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
                 }
                 summary, result = sess.run([merged, fetch], feed_dict={cnn_model.patch: patches_train[index_1],\
                      cnn_model.patch_p: patches_train[index_2], 
-                     cnn_model.patch_n: patches_train[index_3]})
+                     cnn_model.patch_n: patches_train[index_3], \
+                     cnn_model.phase:False})
 
                 training_writer.add_summary(summary, tf.train.global_step(sess, global_step))
                 
@@ -230,7 +232,8 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
             }
             result = sess.run(fetch, feed_dict={cnn_model.patch: patches_train[batch[:,0]],\
                     cnn_model.patch_p: patches_train[batch[:,1]], 
-                    cnn_model.patch_n: patches_train[batch[:,1]]})
+                    cnn_model.patch_n: patches_train[batch[:,1]], \
+                    cnn_model.phase:False})
 
             dists[offset:offset + test_batch_size] = result['eucd_p']
             labels[offset:offset + test_batch_size] = batch[:,2]
@@ -255,7 +258,8 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
             }
             result = sess.run(fetch, feed_dict={cnn_model.patch: patches_test[batch[:,0]],\
                     cnn_model.patch_p: patches_test[batch[:,1]],
-                    cnn_model.patch_n: patches_test[batch[:,1]]})
+                    cnn_model.patch_n: patches_test[batch[:,1]], \
+                    cnn_model.phase:False})
 
             dists[offset:offset + test_batch_size] = result['eucd_p']
             labels[offset:offset + test_batch_size] = batch[:,2]
@@ -299,7 +303,8 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
             }
             result = sess.run(fetch, feed_dict={cnn_model.patch: patches_test[batch[:,0]],\
                     cnn_model.patch_p: patches_test[batch[:,1]],
-                    cnn_model.patch_n: patches_test[batch[:,1]]})
+                    cnn_model.patch_n: patches_test[batch[:,1]], \
+                    cnn_model.phase:False})
 
             dists[offset:offset + test_batch_size] = result['eucd_p']
             labels[offset:offset + test_batch_size] = batch[:,2]

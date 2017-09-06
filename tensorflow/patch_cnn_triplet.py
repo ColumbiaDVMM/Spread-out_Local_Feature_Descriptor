@@ -6,7 +6,8 @@ class PatchCNN_triplet:
         self.patch = tf.placeholder("float32", [None, CNNConfig["patch_size"], CNNConfig["patch_size"], CNNConfig["channel_num"]])
         self.patch_p = tf.placeholder("float32", [None, CNNConfig["patch_size"], CNNConfig["patch_size"], CNNConfig["channel_num"]])
         self.patch_n = tf.placeholder("float32", [None, CNNConfig["patch_size"], CNNConfig["patch_size"], CNNConfig["channel_num"]])
-
+        self.phase = tf.placeholder("bool", None)
+        
         self.margin_0 = CNNConfig["margin_0"]
         self.margin_1 = CNNConfig["margin_1"]
         self.margin_2 = CNNConfig["margin_2"]
@@ -20,11 +21,11 @@ class PatchCNN_triplet:
         self._patch_size = CNNConfig["patch_size"]
 
         with tf.variable_scope("siamese") as scope:
-            self.o1 = self.model(self.patch)
+            self.o1 = self.model(self.patch,self.phase)
             scope.reuse_variables()
-            self.o2 = self.model(self.patch_p)
+            self.o2 = self.model(self.patch_p,self.phase)
             scope.reuse_variables()
-            self.o3 = self.model(self.patch_n)
+            self.o3 = self.model(self.patch_n,self.phase)
 
         # Create loss
         if self.loss_type == 0:
@@ -54,20 +55,38 @@ class PatchCNN_triplet:
         conv_val = tf.nn.relu(tf.nn.conv2d(x, weight, strides=[1, 1, 1, 1], padding='VALID')+bias)
         return conv_val
     
-    def conv2d_layer_BN(self, name, shape, x):
+    def conv2d_layer_BN(self, name, shape, x, phase, decay = 0.999):
         weight_init = tf.truncated_normal_initializer(stddev=.1)
         weight = tf.get_variable(name=name + '_W', dtype = tf.float32, shape=shape, initializer = weight_init)
         bias = tf.get_variable(name=name + '_b', dtype = tf.float32, \
                                initializer = tf.constant(0.1, shape = [shape[3]], dtype = tf.float32))
         conv_val = tf.nn.conv2d(x, weight, strides=[1, 1, 1, 1], padding='VALID')+bias
+        
+        pop_mean = tf.get_variable(name = name+ '_bn_pop_mean', dtype = tf.float32, \
+                               initializer = tf.constant(0, shape = [conv_val.get_shape()[1],\
+                               conv_val.get_shape()[2],conv_val.get_shape()[3]], dtype = tf.float32), trainable=False)
+        pop_var = tf.get_variable(name = name+ '_bn_pop_var', dtype = tf.float32, \
+                               initializer = tf.constant(1, shape = [conv_val.get_shape()[1],\
+                               conv_val.get_shape()[2],conv_val.get_shape()[3]], dtype = tf.float32), trainable=False)
 
-        batch_mean2, batch_var2 = tf.nn.moments(conv_val,[0])
         scale2 = tf.get_variable(name = name+ '_bn_w', dtype = tf.float32, \
                                initializer = tf.constant(1, shape = [shape[3]], dtype = tf.float32))
         beta2 = tf.get_variable(name = name+ '_bn_b', dtype = tf.float32, \
                                initializer = tf.constant(0, shape = [shape[3]], dtype = tf.float32))
-        bn_val = tf.nn.batch_normalization(conv_val,batch_mean2,batch_var2,beta2,scale2,1e-3)
         
+        def bn_val_train(): 
+            batch_mean2, batch_var2 = tf.nn.moments(conv_val,[0])
+            train_mean = tf.assign(pop_mean,
+                           pop_mean * decay + batch_mean2 * (1 - decay))
+            train_var = tf.assign(pop_var,
+                          pop_var * decay + batch_var2 * (1 - decay))
+            with tf.control_dependencies([train_mean, train_var]):
+                return tf.nn.batch_normalization(conv_val,batch_mean2,batch_var2,beta2,scale2,1e-3)
+
+        def bn_val_test(): 
+            return tf.nn.batch_normalization(conv_val,pop_mean,pop_var,beta2,scale2,1e-3)
+
+        bn_val = tf.cond(phase, bn_val_train, bn_val_test)
         return tf.nn.relu(bn_val)
 
     def conv2d_layer_BN_with_padding(self, name, shape, x):
@@ -77,12 +96,31 @@ class PatchCNN_triplet:
                                initializer = tf.constant(0.1, shape = [shape[3]], dtype = tf.float32))
         conv_val = tf.nn.conv2d(x, weight, strides=[1, 1, 1, 1], padding='SAME')+bias
 
-        batch_mean2, batch_var2 = tf.nn.moments(conv_val,[0])
+        pop_mean = tf.get_variable(name = name+ '_bn_pop_mean', dtype = tf.float32, \
+                               initializer = tf.constant(0, shape = [conv_val.get_shape()[1],\
+                               conv_val.get_shape()[2],conv_val.get_shape()[3]], dtype = tf.float32), trainable=False)
+        pop_var = tf.get_variable(name = name+ '_bn_pop_var', dtype = tf.float32, \
+                               initializer = tf.constant(1, shape = [conv_val.get_shape()[1],\
+                               conv_val.get_shape()[2],conv_val.get_shape()[3]], dtype = tf.float32), trainable=False)
+
         scale2 = tf.get_variable(name = name+ '_bn_w', dtype = tf.float32, \
                                initializer = tf.constant(1, shape = [shape[3]], dtype = tf.float32))
         beta2 = tf.get_variable(name = name+ '_bn_b', dtype = tf.float32, \
                                initializer = tf.constant(0, shape = [shape[3]], dtype = tf.float32))
-        bn_val = tf.nn.batch_normalization(conv_val,batch_mean2,batch_var2,beta2,scale2,1e-3)
+        
+        def bn_val_train(): 
+            batch_mean2, batch_var2 = tf.nn.moments(conv_val,[0])
+            train_mean = tf.assign(pop_mean,
+                           pop_mean * decay + batch_mean2 * (1 - decay))
+            train_var = tf.assign(pop_var,
+                          pop_var * decay + batch_var2 * (1 - decay))
+            with tf.control_dependencies([train_mean, train_var]):
+                return tf.nn.batch_normalization(conv_val,batch_mean2,batch_var2,beta2,scale2,1e-3)
+
+        def bn_val_test(): 
+            return tf.nn.batch_normalization(conv_val,pop_mean,pop_var,beta2,scale2,1e-3)
+
+        bn_val = tf.cond(phase, bn_val_train, bn_val_test)
         
         return tf.nn.relu(bn_val)
 
@@ -93,29 +131,33 @@ class PatchCNN_triplet:
                                initializer = tf.constant(0.1, shape = [shape[3]], dtype = tf.float32))
         conv_val = tf.nn.conv2d(x, weight, strides=[1, 2, 2, 1], padding='SAME')+bias
 
-        batch_mean2, batch_var2 = tf.nn.moments(conv_val,[0])
+        pop_mean = tf.get_variable(name = name+ '_bn_pop_mean', dtype = tf.float32, \
+                               initializer = tf.constant(0, shape = [conv_val.get_shape()[1],\
+                               conv_val.get_shape()[2],conv_val.get_shape()[3]], dtype = tf.float32), trainable=False)
+        pop_var = tf.get_variable(name = name+ '_bn_pop_var', dtype = tf.float32, \
+                               initializer = tf.constant(1, shape = [conv_val.get_shape()[1],\
+                               conv_val.get_shape()[2],conv_val.get_shape()[3]], dtype = tf.float32), trainable=False)
+
         scale2 = tf.get_variable(name = name+ '_bn_w', dtype = tf.float32, \
                                initializer = tf.constant(1, shape = [shape[3]], dtype = tf.float32))
         beta2 = tf.get_variable(name = name+ '_bn_b', dtype = tf.float32, \
                                initializer = tf.constant(0, shape = [shape[3]], dtype = tf.float32))
-        bn_val = tf.nn.batch_normalization(conv_val,batch_mean2,batch_var2,beta2,scale2,1e-3)
+        
+        def bn_val_train(): 
+            batch_mean2, batch_var2 = tf.nn.moments(conv_val,[0])
+            train_mean = tf.assign(pop_mean,
+                           pop_mean * decay + batch_mean2 * (1 - decay))
+            train_var = tf.assign(pop_var,
+                          pop_var * decay + batch_var2 * (1 - decay))
+            with tf.control_dependencies([train_mean, train_var]):
+                return tf.nn.batch_normalization(conv_val,batch_mean2,batch_var2,beta2,scale2,1e-3)
+
+        def bn_val_test(): 
+            return tf.nn.batch_normalization(conv_val,pop_mean,pop_var,beta2,scale2,1e-3)
+
+        bn_val = tf.cond(phase, bn_val_train, bn_val_test)
         
         return tf.nn.relu(bn_val)
-
-    def fc_layer_BN(self, name, shape, x):
-        weight_init = tf.truncated_normal_initializer(stddev=.1)
-        weight = tf.get_variable(name=name + '_W', dtype = tf.float32, shape=shape, initializer = weight_init)
-        bias = tf.get_variable(name=name + '_b', dtype = tf.float32,\
-                               initializer = tf.constant(0.1, shape = [shape[1]], dtype = tf.float32))
-
-        fc_val = tf.matmul(x, weight)+bias
-        batch_mean2, batch_var2 = tf.nn.moments(fc_val,[0])
-        scale2 = tf.get_variable(name = name+ '_bn_w', dtype = tf.float32, \
-                               initializer = tf.constant(1, shape = [shape[1]], dtype = tf.float32))
-        beta2 = tf.get_variable(name = name+ '_bn_b', dtype = tf.float32, \
-                               initializer = tf.constant(0, shape = [shape[1]], dtype = tf.float32))
-        bn_val = tf.nn.batch_normalization(fc_val,batch_mean2,batch_var2,beta2,scale2,1e-3)
-        return bn_val
 
     def _variable_with_weight_decay(self, name, shape, wd):
         dtype = tf.float32
@@ -140,7 +182,7 @@ class PatchCNN_triplet:
         return tf.nn.max_pool(x, ksize=[1, 2, 2, 1],
                         strides=[1, 2, 2, 1], padding='VALID')
 
-    def model(self, x):
+    def model(self, x, phase):
         if self._patch_size == 32:
             h_conv1 = self.conv2d_layer_BN_with_padding('conv1', [3, 3, self.channel_num, 32], x)
             h_conv2 = self.conv2d_layer_BN_with_padding('conv2', [3, 3, 32, 32], h_conv1)
@@ -162,11 +204,11 @@ class PatchCNN_triplet:
                 pool3_flatten = tf.reshape(h_pool3, [-1, 4*4*128])
                 output = self.fc_layer('fc1',[4*4*128,self.descriptor_dim],pool3_flatten)
             else:
-                h_conv1 = self.conv2d_layer_BN('conv1', [7, 7, self.channel_num, 32], x)
+                h_conv1 = self.conv2d_layer_BN('conv1', [7, 7, self.channel_num, 32], x, phase)
                 h_pool1 = self.max_pool_2x2(h_conv1)
-                h_conv2 = self.conv2d_layer_BN('conv2', [6, 6, 32, 64], h_pool1)
+                h_conv2 = self.conv2d_layer_BN('conv2', [6, 6, 32, 64], h_pool1, phase)
                 h_pool2 = self.max_pool_2x2(h_conv2)
-                h_conv3 = self.conv2d_layer_BN('conv3', [5, 5, 64, 128], h_pool2)
+                h_conv3 = self.conv2d_layer_BN('conv3', [5, 5, 64, 128], h_pool2, phase)
                 h_pool3 = self.max_pool_2x2(h_conv3)
                 pool3_flatten = tf.reshape(h_pool3, [-1, 4*4*128])
                 output = self.fc_layer('fc1',[4*4*128,self.descriptor_dim],pool3_flatten)
@@ -211,8 +253,8 @@ class PatchCNN_triplet:
         with tf.name_scope('all_loss'):
             #invertable loss for standard patches
             with tf.name_scope('rand_neg'):
-                rand_neg = tf.reduce_mean(tf.maximum(secMoment_n1,secMoment_n2))
-                #rand_neg = tf.reduce_mean(secMoment_n1)
+                #rand_neg = tf.reduce_mean(tf.maximum(secMoment_n1,secMoment_n2))
+                rand_neg = tf.reduce_mean(secMoment_n1)
             #covariance loss for transformed patches
             with tf.name_scope('pos'):
                 pos = tf.maximum(tf.subtract(positive_margin,tf.subtract(eucd_n1,eucd_p)), 0)
