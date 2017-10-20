@@ -1,7 +1,7 @@
 # Spread-out Local Feature Descriptor
 
 
-### <span style="color:red"> We embeded our regularization with the state-of-the-art HardNet and achieved a much better result than the triplet net. Please find the new code </span> [here](https://github.com/ColumbiaDVMM/hardnet).
+### New!! We embeded our regularization with the state-of-the-art HardNet and achieved a much better result than the triplet net. Please find the new code [here](https://github.com/ColumbiaDVMM/hardnet).
 
 This code is the training and evaluation code for our ICCV 2017 paper ([arxiv](https://arxiv.org/abs/1708.06320)).
 
