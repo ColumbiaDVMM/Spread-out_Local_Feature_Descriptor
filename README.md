@@ -1,7 +1,7 @@
 # Spread-out Local Feature Descriptor
 
 
-### We embeded our regularization with the state-of-the-art HardNet and achieved a much better than the triplet net. Please find the new code [here](https://github.com/ColumbiaDVMM/hardnet).
+### <span style="color:red"> We embeded our regularization with the state-of-the-art HardNet and achieved a much better result than the triplet net. Please find the new code </span> [here](https://github.com/ColumbiaDVMM/hardnet).
 
 This code is the training and evaluation code for our ICCV 2017 paper ([arxiv](https://arxiv.org/abs/1708.06320)).
 
@@ -15,6 +15,20 @@ This code is the training and evaluation code for our ICCV 2017 paper ([arxiv](h
 
 
 The code is tested on Ubuntu 16.04 with Nvidia GTX 1080 Ti.
+
+## Introduction
+
+Descriptor extraction is mapping an image patch to a point in the descriptor space.
+
+<img src="./fig/extraction_pipeline.png" width="300">
+
+To spread out all the points in the descriptor space helps us to fully utilize the descriptor space.
+
+<img src="./fig/Motivation.png" width="300">
+
+Since uniform distribution has nice 'spread-out' property, we learn a descriptor that has similar as uniform distribution on sphere.
+
+We randomly sample non-matching patches from dataset and let the mean and second order moment of the cosine distance of the descriptors to be close to those of uniformly randomly sampled points on unit sphere (0 mean and 1/d second order moment).
 
 ### Requirement
 Python package:
