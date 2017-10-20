@@ -1,5 +1,8 @@
 # Spread-out Local Feature Descriptor
 
+
+### We embeded our regularization with the state-of-the-art HardNet and achieved a much better than the triplet net. Please find the new code [here](https://github.com/ColumbiaDVMM/hardnet).
+
 This code is the training and evaluation code for our ICCV 2017 paper ([arxiv](https://arxiv.org/abs/1708.06320)).
 
 @inproceedings{zhang2017learningb,<br />
@@ -45,18 +48,20 @@ All the result will be stored in the folder called `tensorflow_log`. Use Tensorb
 
 We would like to thank
 
-TFeat [2] 
+TFeat [1] 
 
 for offering the baseline implementation. 
 
 and
 
-UBC dataset [1]
+UBC dataset [2]
 
 for providing the image data.
 
-[1] M. Brown, G. Hua, and S. Winder. Discriminative Learning of Local Image Descriptors. TPAMI, 2011
+[1] V. Balntas, E. Riba, D. Ponsa, and K. Mikolajczyk. Learning local feature descriptors with triplets and shallow convolutional neural networks. BMVC, 2016
 
-[2] V. Balntas, E. Riba, D. Ponsa, and K. Mikolajczyk. Learning local feature descriptors with triplets and shallow convolutional neural networks. BMVC, 2016
+[2] M. Brown, G. Hua, and S. Winder. Discriminative Learning of Local Image Descriptors. TPAMI, 2011
+
+
 
 
