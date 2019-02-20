@@ -39,7 +39,7 @@ tensorflow>1.0.0, tqdm, cv2, skimage, glob
 
 #### Get the data
 
-Download UBC patch dataset [1] from http://www.iis.ee.ic.ac.uk/~vbalnt/phototourism-patches/. We thank Vassileios Balntas for sharing the data with us. 
+Download UBC patch dataset [1] from https://drive.google.com/open?id=16NJeL3WZ0TB4aIrMjJlqGtG-4pLbig5v. We thank Vassileios Balntas for sharing the data with us. 
 
 Extract the image data to somewhere. In the code the default location is /home/xuzhang/project/Medifor/code/Invariant-Descriptor/data/photoTour/. See batch_process.py for details.
 
